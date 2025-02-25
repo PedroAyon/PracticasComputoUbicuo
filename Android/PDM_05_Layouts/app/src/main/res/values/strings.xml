@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">PDM_05_Layouts</string>
+    <string name="text">Texto</string>
+    <string name="boton">Aceptar</string>
+</resources>
