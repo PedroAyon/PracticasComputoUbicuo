@@ -1,0 +1,41 @@
+package dev.pedroayon.pdm05b_abpj.util
+
+object Constants {
+    val currencyList: List<String> = arrayListOf(
+        "USD - U.S. Dollar",
+        "MXN - Mexican Peso",
+        "EUR - Euro",
+        "JPY - Japanese Yen",
+        "GBP - British Pound",
+        "AUD - Australian Dollar",
+        "CAD - Canadian Dollar",
+        "CHF - Swiss Franc",
+        "CNY - Chinese Yuan",
+        "HKD - Hong Kong Dollar",
+        "NZD - New Zealand Dollar",
+        "SEK - Swedish Krona",
+        "KRW - South Korean Won",
+        "SGD - Singapore Dollar",
+        "NOK - Norwegian Krone",
+        "INR - Indian Rupee",
+        "RUB - Russian Ruble",
+        "ZAR - South African Rand",
+        "TRY - Turkish Lira",
+        "BRL - Brazilian Real",
+        "TWD - New Taiwan Dollar",
+        "DKK - Danish Krone",
+        "PLN - Polish Zloty",
+        "THB - Thai Baht",
+        "IDR - Indonesian Rupiah",
+        "HUF - Hungarian Forint",
+        "CZK - Czech Koruna",
+        "ILS - Israeli Shekel",
+        "CLP - Chilean Peso",
+        "PHP - Philippine Peso",
+        "AED - United Arab Emirates Dirham",
+        "COP - Colombian Peso",
+        "SAR - Saudi Riyal",
+        "MYR - Malaysian Ringgit",
+        "RON - Romanian Leu"
+    )
+}
