@@ -11,18 +11,56 @@ fun evaluateExpression(expression: String): String {
     }
 }
 
-fun evaluate(expression: String) : Double {
-    var terms = expression.split("+", limit = 2)
-    if (terms.size == 2) return evaluate(terms[0]) +  evaluate(terms[1])
-    terms = expression.split("-", limit = 2)
-    if (terms.size == 2) return evaluate(terms[0]) -  evaluate(terms[1])
-    terms = expression.split("*", limit = 2)
-    if (terms.size == 2) return evaluate(terms[0]) *  evaluate(terms[1])
-    terms = expression.split("/", limit = 2)
-    if (terms.size == 2) return evaluate(terms[0]) /  evaluate(terms[1])
-    terms = expression.split("%", limit = 2)
-    if (terms.size == 2) return evaluate(terms[0]) %  evaluate(terms[1])
-    terms = expression.split("^", limit = 2)
+fun evaluate(expression: String): Double {
+    val exp = clearParenthesisWhileSolvingThem(expression) // Usa una variable mutable
+
+    var terms = exp.split("+", limit = 2)
+    if (terms.size == 2) return evaluate(terms[0]) + evaluate(terms[1])
+
+    terms = exp.split("-", limit = 2)
+    if (terms.size == 2) return evaluate(terms[0]) - evaluate(terms[1])
+
+    terms = exp.split("*", limit = 2)
+    if (terms.size == 2) return evaluate(terms[0]) * evaluate(terms[1])
+
+    terms = exp.split("/", limit = 2)
+    if (terms.size == 2) return evaluate(terms[0]) / evaluate(terms[1])
+
+    terms = exp.split("%", limit = 2)
+    if (terms.size == 2) return evaluate(terms[0]) % evaluate(terms[1])
+
+    terms = exp.split("^", limit = 2)
     if (terms.size == 2) return Math.pow(evaluate(terms[0]), evaluate(terms[1]))
-    return expression.toDouble()
+
+    return exp.toDouble()
+}
+
+
+fun clearParenthesisWhileSolvingThem(e: String): String {
+    var i = 0
+    var result = e
+    while (i < e.length) {
+        if (e[i] == '(') {
+            var openParenthesisCount = 1
+            val openingParenthesisIndex = i
+            i++
+            while (i < e.length && openParenthesisCount > 0) {
+                if (e[i] == '(') openParenthesisCount++
+                else if (e[i] == ')') openParenthesisCount--
+                i++
+            }
+            if (i >= e.length && openParenthesisCount > 0) {
+                throw Exception("Parenthesis doesn't match.")
+            }
+            val closingParenthesisIndex = i - 1
+            val subExp = e.substring(openingParenthesisIndex + 1, closingParenthesisIndex)
+            result = e.substring(0, openingParenthesisIndex) + evaluateExpression(subExp)+ e.substring(closingParenthesisIndex + 1, e.length)
+
+        } else if (e[i] == ')') {
+            throw Exception("Parenthesis doesn't match.")
+        }
+        i++
+    }
+
+    return result
 }

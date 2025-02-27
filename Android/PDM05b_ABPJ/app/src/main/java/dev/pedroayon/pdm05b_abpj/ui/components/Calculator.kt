@@ -61,10 +61,8 @@ fun CalculatorUI() {
                     KeypadButton("7", onClick = { appendDigit("7") }, modifier = Modifier.weight(1f))
                     KeypadButton("8", onClick = { appendDigit("8") }, modifier = Modifier.weight(1f))
                     KeypadButton("9", onClick = { appendDigit("9") }, modifier = Modifier.weight(1f))
-                    KeypadButton("C", onClick = { calculatorDisplay = "0" }, modifier = Modifier.weight(1f))
-                    KeypadButton("CE", onClick = {
-                        calculatorDisplay = if(calculatorDisplay.length > 1) calculatorDisplay.dropLast(1) else "0"
-                    }, modifier = Modifier.weight(1f))
+                    KeypadButton("(", onClick = { appendDigit("(") }, modifier = Modifier.weight(1f))
+                    KeypadButton(")", onClick = { appendDigit(")") }, modifier = Modifier.weight(1f))
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -95,6 +93,17 @@ fun CalculatorUI() {
                     KeypadButton("%", onClick = { appendDigit("%") }, modifier = Modifier.weight(1f))
                     KeypadButton("^", onClick = { appendDigit("^") }, modifier = Modifier.weight(1f))
                     KeypadButton("=", onClick = { calculatorDisplay = evaluateExpression(calculatorDisplay) }, modifier = Modifier.weight(1f))
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Spacer(modifier = Modifier.weight(3f))
+                    KeypadButton("C", onClick = { calculatorDisplay = "0" }, modifier = Modifier.weight(1f))
+                    KeypadButton("CE", onClick = {
+                        calculatorDisplay = if(calculatorDisplay.length > 1) calculatorDisplay.dropLast(1) else "0"
+                    }, modifier = Modifier.weight(1f))
                 }
             }
         }

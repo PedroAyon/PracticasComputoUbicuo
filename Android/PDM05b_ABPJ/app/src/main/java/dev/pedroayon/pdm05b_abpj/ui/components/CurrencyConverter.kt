@@ -126,8 +126,7 @@ fun CurrencyConverterUI(viewModel: CurrencyViewModel) {
                     Row {
                         Button(
                             onClick = {
-                                if (viewModel.rateUpdated) viewModel.convert()
-                                else viewModel.getRate { viewModel.convert() }
+                                viewModel.getRate { viewModel.convert() }
                             },
                             modifier = Modifier.weight(1f)
                         ) {
