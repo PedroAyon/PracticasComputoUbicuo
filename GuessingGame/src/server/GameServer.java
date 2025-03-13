@@ -60,7 +60,7 @@ public class GameServer {
                 // Start a thread to handle communication with this client,
                 // passing the GameCommunicator for game-specific commands.
                 new Thread(new ServerClientThread(username, clientSocket, input,
-                        messageQueue, clientMap, messageHistory, gameComm)).start();
+                        messageQueue, clientMap, gameComm)).start();
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Server encountered an error", ex);
