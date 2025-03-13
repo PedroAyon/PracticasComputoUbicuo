@@ -17,20 +17,22 @@ public class ServerClientThread implements Runnable {
     private final DataInputStream input;
     private final LinkedBlockingQueue<String> messageQueue;
     private final HashMap<String, DataOutputStream> clientMap;
-    private final GameCommunicator gameComm;
+    private final GameController gameController;
+    private final ServerBroadcastThread serverBroadcastThread;
     private boolean connected = true;
     private static final Logger logger = Logger.getLogger(ServerClientThread.class.getName());
 
     public ServerClientThread(String username, Socket clientSocket, DataInputStream input,
                               LinkedBlockingQueue<String> messageQueue,
                               HashMap<String, DataOutputStream> clientMap,
-                              GameCommunicator gameComm) {
+                              GameController gameController, ServerBroadcastThread serverBroadcastThread) {
         this.username = username;
         this.clientSocket = clientSocket;
         this.input = input;
         this.messageQueue = messageQueue;
         this.clientMap = clientMap;
-        this.gameComm = gameComm;
+        this.gameController = gameController;
+        this.serverBroadcastThread = serverBroadcastThread;
     }
 
     @Override
@@ -63,16 +65,16 @@ public class ServerClientThread implements Runnable {
         if (received.startsWith("choose ")) {
             try {
                 int number = Integer.parseInt(received.split(" ")[1]);
-                gameComm.chooseNumber(username, number);
+                gameController.chooseNumber(username, number);
             } catch (NumberFormatException e) {
-                gameComm.sendMessageToUser(username, "Invalid number format for choose command.");
+                serverBroadcastThread.sendMessageToUser(username, "Invalid number format for choose command.");
             }
         } else if (received.startsWith("guess ")) {
             try {
                 int guess = Integer.parseInt(received.split(" ")[1]);
-                gameComm.guessNumber(username, guess);
+                gameController.guessNumber(username, guess);
             } catch (NumberFormatException e) {
-                gameComm.sendMessageToUser(username, "Invalid number format for guess command.");
+                serverBroadcastThread.sendMessageToUser(username, "Invalid number format for guess command.");
             }
         } else {
             // For all other messages, add them to the chat and message history.

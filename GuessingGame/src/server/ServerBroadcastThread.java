@@ -43,4 +43,31 @@ public class ServerBroadcastThread implements Runnable {
             }
         }
     }
+
+    /**
+     * Sends a message to a specific user.
+     */
+    public void sendMessageToUser(String username, String message) {
+        DataOutputStream out = clientMap.get(username);
+        if (out != null) {
+            try {
+                out.writeUTF(message);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error sending message to " + username, e);
+            }
+        }
+    }
+
+    /**
+     * Broadcasts a message to all connected clients.
+     */
+    public void broadcastMessage(String message) {
+        clientMap.forEach((user, out) -> {
+            try {
+                out.writeUTF(message);
+            } catch (IOException e) {
+                logger.log(Level.SEVERE, "Error sending message to " + user, e);
+            }
+        });
+    }
 }

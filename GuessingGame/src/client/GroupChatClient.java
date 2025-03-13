@@ -10,7 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class GroupChatClient {
-    private static final String HOST = "192.168.96.181";
+    private static final String HOST = "localhost";
     private static final int PORT = 10001;
     private static final Logger logger = Logger.getLogger(GroupChatClient.class.getName());
 

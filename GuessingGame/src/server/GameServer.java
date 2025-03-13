@@ -5,7 +5,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
@@ -22,16 +21,15 @@ public class GameServer {
 
         LinkedBlockingQueue<String> messageQueue = new LinkedBlockingQueue<>();
         HashMap<String, DataOutputStream> clientMap = new HashMap<>();
-        ArrayList<String> messageHistory = new ArrayList<>();
 
-        GameCommunicator gameComm = new GameCommunicator(gameInstance, clientMap);
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             logger.info("The server started on port " + PORT + ". To stop it press <CTRL><C>.");
 
             // Start the thread that handles broadcasting generic messages.
-            new Thread(new ServerBroadcastThread(messageQueue, clientMap)).start();
-
+            ServerBroadcastThread serverBroadcastThread = new ServerBroadcastThread(messageQueue, clientMap);
+            new Thread(serverBroadcastThread).start();
+            GameController gameController = new GameController(gameInstance, serverBroadcastThread);
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 DataInputStream input = new DataInputStream(clientSocket.getInputStream());
@@ -53,14 +51,14 @@ public class GameServer {
                     return;                 }
 
                 if (clientMap.size() >= MIN_PLAYERS && !gameStarted) {
-                    gameComm.startGame();
+                    gameController.startGame();
                     gameStarted =true;
                 }
 
                 // Start a thread to handle communication with this client,
-                // passing the GameCommunicator for game-specific commands.
+                // passing the GameController for game-specific commands.
                 new Thread(new ServerClientThread(username, clientSocket, input,
-                        messageQueue, clientMap, gameComm)).start();
+                        messageQueue, clientMap, gameController, serverBroadcastThread)).start();
             }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, "Server encountered an error", ex);
