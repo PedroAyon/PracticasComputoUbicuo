@@ -12,21 +12,13 @@ public class GameController {
         this.serverBroadcastThread = serverBroadcastThread;
     }
 
-    /**
-     * Starts the game by picking a new number-choosing player and notifying everyone.
-     */
     public void startGame() {
         game.clearNumber();
         String choosingPlayer = game.pickNewChoosingPlayer();
         serverBroadcastThread.broadcastMessage("Game started. " + choosingPlayer + " will choose a number.");
     }
 
-    /**
-     * Allows the current number-choosing player to set the number to guess.
-     *
-     * @param username The player attempting to choose the number.
-     * @param number   The number chosen.
-     */
+
     public void chooseNumber(String username, int number) {
         if (!username.equals(game.getCurrentNumberChoosingPlayer())) {
             serverBroadcastThread.sendMessageToUser(username, username + ", you are not the designated number chooser.");
@@ -36,12 +28,6 @@ public class GameController {
         serverBroadcastThread.broadcastMessage(username + " has chosen a number. Let the guessing begin!");
     }
 
-    /**
-     * Processes a guess from a player.
-     *
-     * @param username The player making the guess.
-     * @param guess    The guessed number.
-     */
     public void guessNumber(String username, int guess) {
         boolean correct = game.guess(guess);
         if (correct) {
