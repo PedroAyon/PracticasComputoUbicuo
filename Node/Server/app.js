@@ -1,22 +1,15 @@
 const express = require('express');
-const app = express();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
-//settings
-app.set('port', 3100);
+const app = express();
+const port = 3100
 
-//middlewares
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 
-//routes
-require('./routes/userRoutes')(app);
+require('./routes/userRoutes')(app, 1);
+app.listen(port, () => {
+  console.log(`Server instance running on port ${port}`);
+});
 
-
-//statis files
-
-
-app.listen(app.get('port'), () => {
-		console.log('server on port 3100');
-	});

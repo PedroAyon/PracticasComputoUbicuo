@@ -1,0 +1,40 @@
+=============================================================
+ChatServer-Revisión de S1C1:
+=============================================================
+01. Describa el proposito general del package S1C1.
+R:
+
+02. ¿Con que clase se crea el servidor, y con qué parámetros se debe configurar el constructor y cuál es su signifcado?
+R:
+
+03. ¿Con que clase se crea un cliente, y cómo se debe inicializar?
+R:
+
+04. ¿El servidor del microchat cuántas conexiones de cliente soporta, indique que parte del código justifica su respuesta?
+R:
+
+05. ¿Cómo es el protocolo de comunicación cliente-servidor?
+R:
+=============================================================
+
+=============================================================
+ChatServer-Revisión de S1CM.Servidor:
+=============================================================
+01. Describa como logró permitir al servidor interactuar con multiples clientes, identifique que líneas de código son esenciales para este proceso.
+R:
+
+02. ¿Cuál es el protocolo de comunicación usado para interactura con los clientes?
+R:
+
+ChatServer-Revisión de S1CM.Cliente:
+=============================================================
+01. Describa minuciosamente el propósito de las clases implementadas para permitir la comunicación cliente-servidorcomo con más de un cliente.
+R:
+
+02. ¿Cuál es el protocolo de comunicación usado para interactuar con el servidor?
+R:
+
+
+General:
+01. Describa de manera breve los pasos que se siguen para llevar a cabo el proceso de levantar el servidor e iniciar los clientes de acuerdo a la aplicacion.
+

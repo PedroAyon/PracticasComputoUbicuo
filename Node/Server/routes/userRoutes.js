@@ -13,7 +13,7 @@ module.exports = function(app, equipo) {
   app.get('/tetoca/', (req, res) => {
     equipoInstancia = equipo;
     while (equipoInstancia === equipo) {
-      equipoInstancia = Math.floor(Math.random() * 4) + 1;
+      equipoInstancia = Math.floor(Math.random() * 20) + 1;
     }
     console.log(equipoInstancia);
     res.send('ENTENDIDO');
