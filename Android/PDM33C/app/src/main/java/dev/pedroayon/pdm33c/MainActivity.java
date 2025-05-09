@@ -1,30 +1,31 @@
 package dev.pedroayon.pdm33c;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
-import android.widget.*;
-import androidx.core.app.ActivityCompat;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
 public class MainActivity extends Activity {
-    private Button btnBluetooth, btnBuscarDispositivo;
+    private Button btnBluetooth;
+    private Button btnBuscarDispositivo;
     private BluetoothAdapter bAdapter;
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int REQUEST_BLUETOOTH_CONNECT = 1001;
-
     private ArrayList<BluetoothDevice> arrayDevices;
     private ListView lvDispositivos;
     private TextView tvMensaje;
@@ -32,6 +33,9 @@ public class MainActivity extends Activity {
     private BluetoothService obj;
     private BluetoothDevice bluetoothDevice;
 
+    private static final int REQUEST_ENABLE_BT = 1;
+
+    @SuppressLint("MissingPermission")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,6 +47,12 @@ public class MainActivity extends Activity {
         tvMensaje = findViewById(R.id.tvMensaje);
         etSendData = findViewById(R.id.etDataSend);
 
+        // Listener for ListView item clicks: select Bluetooth device
+        lvDispositivos.setOnItemClickListener((parent, view, position, id) -> {
+            bluetoothDevice = arrayDevices.get(position);
+            Toast.makeText(getApplicationContext(), bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
+        });
+
         bAdapter = BluetoothAdapter.getDefaultAdapter();
         if (bAdapter == null) {
             btnBluetooth.setEnabled(false);
@@ -50,12 +60,28 @@ public class MainActivity extends Activity {
             return;
         }
 
-        if (bAdapter.isEnabled()) btnBluetooth.setText("Desactivar");
-        else btnBluetooth.setText("Activar");
+        // Set button text depending on Bluetooth state
+        if (bAdapter.isEnabled()) {
+            btnBluetooth.setText("Desactivar");
+            btnBuscarDispositivo.setEnabled(true);
+        } else {
+            btnBluetooth.setText("Activar");
+            btnBuscarDispositivo.setEnabled(false);
+        }
 
+        String[] perms = {"android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION",
+                "android.permission.BLUETOOTH",
+                "android.permission.BLUETOOTH_ADMIN",
+                "android.permission.BLUETOOTH_CONNECT",
+                "android.permission.BLUETOOTH_SCAN"};
+
+        BluetoothAdmin.getPermissions(perms, this);
+        BluetoothAdmin.registrarEventosBluetooth(this, bReceiver);
+        obj = new BluetoothService(bAdapter, handler);
+
+        // Set separate click listeners for buttons
         btnBluetooth.setOnClickListener(v -> {
-            if (!checkBluetoothConnectPermission()) return;
-
             if (bAdapter.isEnabled()) {
                 bAdapter.disable();
                 btnBuscarDispositivo.setEnabled(false);
@@ -66,89 +92,91 @@ public class MainActivity extends Activity {
         });
 
         btnBuscarDispositivo.setOnClickListener(v -> {
-            if (!checkBluetoothConnectPermission()) return;
-
-            if (arrayDevices != null) arrayDevices.clear();
-
-            if (bAdapter.isDiscovering()) bAdapter.cancelDiscovery();
-
-            if (bAdapter.startDiscovery())
-                Toast.makeText(this, "Iniciando búsqueda de dispositivos bluetooth", Toast.LENGTH_SHORT).show();
-            else
-                Toast.makeText(this, "Error al iniciar búsqueda de dispositivos bluetooth", Toast.LENGTH_SHORT).show();
-        });
-
-        lvDispositivos.setOnItemClickListener((parent, view, position, id) -> {
-            if (!checkBluetoothConnectPermission()) return;
-
-            bluetoothDevice = arrayDevices.get(position);
-            Toast.makeText(getApplicationContext(), bluetoothDevice.getName(), Toast.LENGTH_SHORT).show();
-        });
-
-        String[] perms = {
-                "android.permission.ACCESS_FINE_LOCATION",
-                "android.permission.ACCESS_COARSE_LOCATION",
-                "android.permission.BLUETOOTH",
-                "android.permission.BLUETOOTH_ADMIN",
-                "android.permission.BLUETOOTH_CONNECT",
-                "android.permission.BLUETOOTH_SCAN"
-        };
-
-        BluetoothAdmin.getPermissions(perms, this);
-        BluetoothAdmin.registrarEventosBluetooth(this, bReceiver);
-        obj = new BluetoothService(bAdapter, handler);
-    }
-
-    private boolean checkBluetoothConnectPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (checkSelfPermission(android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.BLUETOOTH_CONNECT}, REQUEST_BLUETOOTH_CONNECT);
-                return false;
+            if (arrayDevices != null) {
+                arrayDevices.clear();
             }
-        }
-        return true;
+            if (bAdapter.isDiscovering()) {
+                bAdapter.cancelDiscovery();
+            }
+            if (bAdapter.startDiscovery()) {
+                Toast.makeText(MainActivity.this, "Iniciando búsqueda de dispositivos bluetooth", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(MainActivity.this, "Error al iniciar búsqueda de dispositivos bluetooth", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    // BroadcastReceiver for handling Bluetooth state changes and discovery events
     private final BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
+                Log.e("ON-RECIEVE", "ACTION_STATE_CHANGED");
                 final int estado = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR);
                 switch (estado) {
                     case BluetoothAdapter.STATE_OFF:
                         btnBluetooth.setText("Activar");
+                        btnBuscarDispositivo.setEnabled(false);
                         break;
                     case BluetoothAdapter.STATE_ON:
                         btnBluetooth.setText("Desactivar");
+                        btnBuscarDispositivo.setEnabled(true);
+                        break;
+                    default:
                         break;
                 }
             } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                if (!checkBluetoothConnectPermission()) return;
-
-                if (arrayDevices == null) arrayDevices = new ArrayList<>();
-
+                Log.e("ON-RECIEVE", "ACTION_FOUND");
+                if (arrayDevices == null)
+                    arrayDevices = new ArrayList<>();
                 BluetoothDevice dispositivo = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 arrayDevices.add(dispositivo);
-
+                @SuppressLint("MissingPermission")
                 String descripcionDispositivo = dispositivo.getName() + " [" + dispositivo.getAddress() + "]";
                 Toast.makeText(getBaseContext(), "Dispositivo Detectado: " + descripcionDispositivo, Toast.LENGTH_SHORT).show();
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
-                ArrayAdapter arrayAdapter = new BluetoothDeviceArrayAdapter(getBaseContext(), android.R.layout.simple_list_item_2, arrayDevices);
+                Log.e("ON-RECIEVE", "ACTION_DISCOVERY_FINISHED");
+                ArrayAdapter<BluetoothDevice> arrayAdapter = new BluetoothDeviceArrayAdapter(getBaseContext(),
+                        android.R.layout.simple_list_item_2, arrayDevices);
                 lvDispositivos.setAdapter(arrayAdapter);
                 Toast.makeText(getBaseContext(), "Fin de la búsqueda", Toast.LENGTH_SHORT).show();
             }
         }
     };
 
+    // Handler to process messages from BluetoothService
+    private final Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            byte[] buffer;
+            String mensaje;
+            switch (msg.what) {
+                case BluetoothService.MSG_LEER:
+                    buffer = (byte[]) msg.obj;
+                    mensaje = new String(buffer, 0, msg.arg1);
+                    tvMensaje.setText(mensaje);
+                    break;
+                case BluetoothService.MSG_ESCRIBIR:
+                    buffer = (byte[]) msg.obj;
+                    mensaje = new String(buffer);
+                    Toast.makeText(getApplicationContext(), "Enviando mensaje: " + mensaje, Toast.LENGTH_LONG).show();
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+    // onDataSend can still be used as before, possibly tied via XML or set a listener
     public void onDataSend(View v) {
         String data = etSendData.getText().toString();
         byte[] buffer = data.getBytes();
         obj.escribir(buffer);
-        etSendData.setText("" + (1 - Integer.parseInt(data)) % 2);
+        etSendData.setText("" + (1 - Integer.valueOf(data)) % 2);
     }
 
+    // Methods for client/server modes
     public void onServer(View v) {
         obj.iniciarServidor();
     }
@@ -157,15 +185,16 @@ public class MainActivity extends Activity {
         obj.iniciarCliente(bluetoothDevice);
     }
 
+    // Handling activity result for Bluetooth enabling
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == RESULT_OK) {
                 Log.e("ON-ACTIVITY-RESULT", "RESULT_OK");
-                btnBuscarDispositivo.setEnabled(true);
+//                btnBuscarDispositivo.setEnabled(true);
             } else {
                 Log.e("ON-ACTIVITY-RESULT", "RESULT_NO_OK");
-                btnBuscarDispositivo.setEnabled(false);
+//                btnBuscarDispositivo.setEnabled(false);
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -178,35 +207,12 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        if (requestCode == REQUEST_BLUETOOTH_CONNECT) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permiso BLUETOOTH_CONNECT concedido", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Permiso BLUETOOTH_CONNECT denegado", Toast.LENGTH_SHORT).show();
-            }
+    public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults) {
+        Log.e("OR-PERMISSIONS", "Respuesta");
+        if (permsRequestCode == 200) {
+            boolean fineLocationAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            boolean coarseLocationAccepted = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+            Log.e("OR-PERMISSIONS-200", "Respuesta a solicitud FINE: [" + fineLocationAccepted + "] + COARSE: [" + coarseLocationAccepted + "]");
         }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-
-    private final Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            byte[] buffer;
-            String mensaje;
-
-            switch (msg.what) {
-                case BluetoothService.MSG_LEER:
-                    buffer = (byte[]) msg.obj;
-                    mensaje = new String(buffer, 0, msg.arg1);
-                    tvMensaje.setText(mensaje);
-                    break;
-                case BluetoothService.MSG_ESCRIBIR:
-                    buffer = (byte[]) msg.obj;
-                    mensaje = "Enviando mensaje: " + new String(buffer);
-                    Toast.makeText(getApplicationContext(), mensaje, Toast.LENGTH_LONG).show();
-                    break;
-            }
-        }
-    };
 }
